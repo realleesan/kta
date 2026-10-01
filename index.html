@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KTA BUILD - Hệ Thống Quản Lý Thi Công & Dòng Tiền Dự Án</title>
+  <meta name="description" content="Hệ thống quản lý dự án xây dựng liên thông kinh doanh & hiện trường công trình - KTA Build">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="header-left">
+        <a href="#" class="brand-logo" onclick="setRole('office')">
+          <div class="logo-icon">
+            <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24">
+              <path d="M3 21h18M5 21V7l8-4v18M13 11l6-3v13M9 9h1M9 13h1M9 17h1M17 13h1M17 17h1"/>
+            </svg>
+          </div>
+          <div class="logo-info">
+            <h1>KTA BUILD</h1>
+            <span>Quản Trị Thi Công & Dòng Tiền</span>
+          </div>
+        </a>
+
+        <!-- CHUYỂN ĐỔI GÓC NHÌN: VĂN PHÒNG vs HIỆN TRƯỜNG -->
+        <div class="role-switch-container">
+          <button id="role-office-btn" class="role-btn active" onclick="setRole('office')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Khối Văn Phòng
+          </button>
+          <button id="role-field-btn" class="role-btn field-btn" onclick="setRole('field')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            Khối Hiện Trường
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="project-select-badge">
+          <label>Dự án:</label>
+          <select id="global-project-select" onchange="onProjectChange(this.value)">
+            <option value="p1">Biệt thự Yên Bệ - Hoài Đức</option>
+            <option value="p2">Tòa nhà KTA Tower - Cầu Giấy</option>
+            <option value="p3">Liền kề Splendora An Khánh</option>
+            <option value="p4">Villa Sinh Thái Suối Hai - Ba Vì</option>
+          </select>
+        </div>
+
+        <div class="user-tag">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span><strong>Nguyễn Bảo Nhật</strong> (Quản trị)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       PHÂN HỆ 1: GIAO DIỆN KHỐI VĂN PHÒNG (BOD, KẾ TOÁN, KỸ SƯ DỰ TOÁN)
+       ========================================================================= -->
+  <div id="office-view-container">
+    
+    <!-- SUB-NAVIGATION TABS -->
+    <nav class="subnav-bar">
+      <div class="subnav-container">
+        <button class="subnav-link active" onclick="switchOfficeTab('tab-overview', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 3v18h18M19 9l-5 5-4-4-3 3"/></svg>
+          Tổng quan
+        </button>
+        <button class="subnav-link" onclick="switchOfficeTab('tab-projects', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Dự án & Hồ sơ
+          <span class="nav-counter" id="nav-projects-count">4</span>
+        </button>
+        <button class="subnav-link" onclick="switchOfficeTab('tab-estimates', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Dự toán & Báo giá
+        </button>
+        <button class="subnav-link" onclick="switchOfficeTab('tab-cashflow', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Dòng tiền & Thanh toán
+          <span class="nav-counter" style="background:#fef3c7; color:#b45309;">1 Đến hạn</span>
+        </button>
+        <button class="subnav-link" onclick="switchOfficeTab('tab-materials', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Vật tư & Kho bãi
+          <span id="badge-pending-po" class="nav-counter" style="background:#fee2e2; color:#b91c1c;">2 Phiếu chờ</span>
+        </button>
+        <button class="subnav-link" onclick="switchOfficeTab('tab-attendance', this)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Nhân sự & Chấm công
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="main-content">
+      
+      <!-- TOP KPI SUMMARY CARDS -->
+      <section class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-header">
+            <span class="kpi-label">Dự Án Đang Thi Công</span>
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M13 11l6-3v13"/></svg>
+          </div>
+          <div class="kpi-number" id="kpi-projects-active">4 Dự Án</div>
+          <div class="kpi-desc">
+            <span class="status-pill status-success">Đang hoạt động</span> 1 dự án chuẩn bị khởi công
+          </div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-header">
+            <span class="kpi-label">Dòng Tiền Đã Thu</span>
+            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="kpi-number" id="kpi-collected-total">18.2 Tỷ VNĐ</div>
+          <div class="kpi-desc">
+            <strong style="color:var(--success);">63.6%</strong> trên tổng hợp đồng 28.6 Tỷ
+          </div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-header">
+            <span class="kpi-label">Đợt Thu Sắp Tới Hạn</span>
+            <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="kpi-number">970 Triệu VNĐ</div>
+          <div class="kpi-desc">
+            <span class="status-pill status-warning">Đợt 3 Yên Bệ</span> trong 3 ngày tới
+          </div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-header">
+            <span class="kpi-label">Tổng Nhân Sự Có Mặt</span>
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div class="kpi-number" id="kpi-workers-total">94 Nhân sự</div>
+          <div class="kpi-desc">
+            <span class="status-pill status-success">100% Định vị GPS</span> tại hiện trường
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 1: TỔNG QUAN TIẾN ĐỘ & NHẬT KÝ -->
+      <div id="tab-overview" class="office-tab-content">
+        <div class="grid-2">
+          
+          <!-- Left: Projects Status -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  Tiến Độ Thi Công Các Dự Án
+                </div>
+                <div class="panel-subtitle">Theo dõi giai đoạn thi công thực tế so với kế hoạch</div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="projects-compact-grid" id="overview-projects-list">
+                <!-- Dynamically injected from app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Real-time Field Feed -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  Nhật Ký Thi Công Từ Hiện Trường
+                </div>
+                <div class="panel-subtitle">Đồng bộ trực tiếp từ ứng dụng của kỹ sư công trường</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="openModal('modal-add-log')">
+                <svg class="svg-icon svg-icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Thêm nhật ký
+              </button>
+            </div>
+            <div class="panel-body">
+              <div class="live-feed-container" id="desktop-live-feed">
+                <!-- Live logs -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: HỒ SƠ & BẢN VẼ -->
+      <div id="tab-projects" class="office-tab-content" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Hồ Sơ Pháp Lý & Lưu Trữ Bản Vẽ Công Trình
+              </div>
+              <div class="panel-subtitle">Quản lý trọn bộ hồ sơ chủ đầu tư, hợp đồng, giấy phép & bản vẽ thiết kế</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tên Dự Án</th>
+                  <th>Chủ Đầu Tư</th>
+                  <th>Địa Điểm</th>
+                  <th>Giá Trị Hợp Đồng</th>
+                  <th>Đã Thu</th>
+                  <th>Hồ Sơ & Bản Vẽ</th>
+                  <th>Chỉ Huy Trưởng</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="projects-table-body">
+                <!-- Injected from app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: DỰ TOÁN & BÁO GIÁ (BOQ) -->
+      <div id="tab-estimates" class="office-tab-content" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+                Bảng Bóc Tách Khối Lượng Dự Toán: <span id="estimate-project-title" style="color:var(--primary); margin-left:4px;">Biệt Thự Vườn Yên Bệ</span>
+              </div>
+              <div class="panel-subtitle">Chi tiết đơn giá vật tư & nhân công từng hạng mục thi công</div>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn btn-outline btn-sm" onclick="showToast('Đang xuất bảng khối lượng dự toán ra Excel...', 'success')">
+                <svg class="svg-icon svg-icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Xuất Excel
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="showToast('Đang tạo file Báo giá PDF hoàn chỉnh gửi CĐT...', 'success')">
+                <svg class="svg-icon svg-icon-sm" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Xuất Báo Giá PDF
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Hạng Mục Thi Công</th>
+                  <th>Đơn Vị</th>
+                  <th>Khối Lượng</th>
+                  <th>Đơn Giá Vật Tư (VNĐ)</th>
+                  <th>Đơn Giá Nhân Công (VNĐ)</th>
+                  <th>Thành Tiền (VNĐ)</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="boq-table-body">
+                <!-- Generated from app.js -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6" style="text-align:right;">TỔNG GIÁ TRỊ DỰ TOÁN THI CÔNG TRỌN GÓI:</td>
+                  <td id="boq-total-amount" style="color:var(--primary); font-size:0.95rem; font-weight:800;">4.850.000.000 đ</td>
+                  <td><span class="status-pill status-success">Đã Ký HĐ</span></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: DÒNG TIỀN & THU CÔNG NỢ -->
+      <div id="tab-cashflow" class="office-tab-content" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">
+                <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Kiểm Soát Dòng Tiền & Các Đợt Thu Tiền Theo Hợp Đồng
+              </div>
+              <div class="panel-subtitle">Cài đặt các mốc thanh toán: Tạm ứng, phần móng, phần thân, hoàn thiện, quyết toán và bảo hành</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mốc Thanh Toán</th>
+                  <th>Dự Án</th>
+                  <th>Tỷ Lệ</th>
+                  <th>Số Tiền (VNĐ)</th>
+                  <th>Điều Kiện Kích Hoạt Đợt Thu</th>
+                  <th>Hạn Thu</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="cashflow-table-body">
+                <!-- Populated from app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: VẬT TƯ & KHO BÃI -->
+      <div id="tab-materials" class="office-tab-content" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Quản Lý & Phê Duyệt Yêu Cầu Cấp Vật Tư Hiện Trường
+              </div>
+              <div class="panel-subtitle">Kỹ sư tại công trường tạo phiếu trên thiết bị di động ➔ Ban quản trị phê duyệt trực tiếp</div>
+            </div>
+            <span class="status-pill status-warning" id="po-count-badge">2 Phiếu Chờ Duyệt</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiếu</th>
+                  <th>Dự Án</th>
+                  <th>Kỹ Sư Đề Xuất</th>
+                  <th>Vật Tư & Khối Lượng</th>
+                  <th>Thời Gian Cần</th>
+                  <th>Lý Do Yêu Cầu</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="materials-table-body">
+                <!-- Populated from app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: NHÂN SỰ & CHẤM CÔNG -->
+      <div id="tab-attendance" class="office-tab-content" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Bảng Tổng Hợp Chấm Công Tổ Đội & Kỹ Sư Toàn Hệ Thống
+              </div>
+              <div class="panel-subtitle">Dữ liệu định vị GPS chống gian lận chấm công, phân bổ theo từng tổ đội thi công</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showToast('Đang xuất bảng lương công nhật chi tiết ra file Excel...', 'success')">
+              <svg class="svg-icon svg-icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Xuất Bảng Lương
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Dự Án</th>
+                  <th>Tổ Đội Thi Công</th>
+                  <th>Tổ Trưởng Phụ Trách</th>
+                  <th>Số Nhân Sự</th>
+                  <th>Giờ Vào Ca</th>
+                  <th>Xác Thực GPS</th>
+                  <th>Tạm Ứng Trong Ngày</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-table-body">
+                <!-- Attendance data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       PHÂN HỆ 2: GIAO DIỆN KHỐI HIỆN TRƯỜNG (KỸ SƯ / TỔ ĐỘI THỢ TẠI CÔNG TRƯỜNG)
+       ========================================================================= -->
+  <div id="field-view-container" style="display:none; padding:1.25rem 0;">
+    <div class="field-view-wrapper">
+      <div class="field-view-container">
+        
+        <div class="field-header">
+          <div class="field-header-top">
+            <span style="font-weight:800; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem;">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M13 11l6-3v13"/></svg>
+              KTA HIỆN TRƯỜNG
+            </span>
+            <span style="font-size:0.75rem; background:rgba(255,255,255,0.15); padding:2px 8px; border-radius:4px;">KS. Nguyễn Văn Hùng</span>
+          </div>
+          <div class="field-project-tag">
+            <span id="m-current-project-name">Biệt thự Yên Bệ - Hoài Đức</span>
+            <span style="color:#86efac; font-size:0.75rem; font-weight:700;">GPS: Hợp lệ (12m)</span>
+          </div>
+        </div>
+
+        <div class="field-body">
+          
+          <!-- NÚT 1: ĐIỂM DANH GPS -->
+          <button class="field-action-btn btn-gps" onclick="mobileDoGPSCheckin()">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+            ĐIỂM DANH GPS - VÀO CA HÔM NAY
+          </button>
+
+          <!-- NÚT 2: CHỤP & ĐĂNG NHẬT KÝ -->
+          <button class="field-action-btn" onclick="openModal('modal-add-log')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            CHỤP ẢNH & ĐĂNG NHẬT KÝ THI CÔNG
+          </button>
+
+          <!-- NÚT 3: TẠO PHIẾU XIN VẬT TƯ -->
+          <button class="field-action-btn btn-mat" onclick="openModal('modal-add-material-req')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            TẠO PHIẾU XIN CẤP VẬT TƯ GẤP
+          </button>
+
+          <!-- Chấm công nhanh tổ thợ -->
+          <div class="field-card">
+            <div class="field-card-title">
+              <span>Điểm danh tổ thợ hôm nay</span>
+              <span style="color:var(--primary); font-weight:800;" id="m-worker-sum">18 Nhân sự</span>
+            </div>
+            
+            <div class="worker-row">
+              <div>
+                <div style="font-weight:700;">Tổ Nề - Anh Thắng</div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Ghép cốt pha & đan sắt sàn T2</div>
+              </div>
+              <div class="worker-ctrl">
+                <button onclick="changeWorkerCount('the', -1)">-</button>
+                <span id="count-the">10</span>
+                <button onclick="changeWorkerCount('the', 1)">+</button>
+              </div>
+            </div>
+
+            <div class="worker-row">
+              <div>
+                <div style="font-weight:700;">Tổ Sắt - Anh Mạnh</div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Gia công dầm d1, d2</div>
+              </div>
+              <div class="worker-ctrl">
+                <button onclick="changeWorkerCount('sat', -1)">-</button>
+                <span id="count-sat">5</span>
+                <button onclick="changeWorkerCount('sat', 1)">+</button>
+              </div>
+            </div>
+
+            <div class="worker-row">
+              <div>
+                <div style="font-weight:700;">Tổ Điện Nước - Anh Hòa</div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Đặt ống gen luồn dây điện sàn T2</div>
+              </div>
+              <div class="worker-ctrl">
+                <button onclick="changeWorkerCount('dien', -1)">-</button>
+                <span id="count-dien">3</span>
+                <button onclick="changeWorkerCount('dien', 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cảnh báo vật tư tại bãi -->
+          <div class="field-card">
+            <div class="field-card-title">
+              <span>Tồn bãi công trường</span>
+            </div>
+            <div style="font-size:0.78rem; display:flex; flex-direction:column; gap:0.35rem;">
+              <div style="display:flex; justify-content:space-between;">
+                <span>Xi măng PC40:</span>
+                <strong style="color:var(--warning);">Còn 18 bao (Cần nhập thêm)</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>Thép D18 Hòa Phát:</span>
+                <strong style="color:var(--success);">Còn 4.5 tấn (Đủ dùng)</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>Cát vàng Sông Lô:</span>
+                <strong style="color:var(--danger);">Sắp hết (Còn 2m³)</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nhật ký đã gửi -->
+          <div class="field-card">
+            <div class="field-card-title">
+              <span>Nhật ký gần nhất đã gửi</span>
+            </div>
+            <div id="m-log-feed" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.78rem;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: CHỤP & ĐĂNG NHẬT KÝ
+       ========================================================================= -->
+  <div id="modal-add-log" class="modal-overlay">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h3>
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Chụp & Đăng Nhật Ký Thi Công
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-add-log')">✕</button>
+      </div>
+      <div class="modal-content">
+        <div class="form-item">
+          <label>Dự án thi công:</label>
+          <select id="log-form-project" class="form-field">
+            <option value="Biệt thự Yên Bệ - Hoài Đức">Biệt thự Yên Bệ - Hoài Đức</option>
+            <option value="Tòa nhà KTA Tower - Cầu Giấy">Tòa nhà KTA Tower - Cầu Giấy</option>
+            <option value="Liền kề Splendora An Khánh">Liền kề Splendora An Khánh</option>
+            <option value="Villa Sinh Thái Suối Hai - Ba Vì">Villa Sinh Thái Suối Hai - Ba Vì</option>
+          </select>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-item">
+            <label>Thời tiết hiện trường:</label>
+            <input type="text" id="log-form-weather" class="form-field" value="Nắng ráo, 29°C, gió nhẹ">
+          </div>
+          <div class="form-item">
+            <label>Số lượng nhân công:</label>
+            <input type="number" id="log-form-workers" class="form-field" value="18">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label>Hạng mục hoàn thành trong ngày:</label>
+          <input type="text" id="log-form-title" class="form-field" placeholder="Ví dụ: Hoàn thành đan thép dầm sàn T2">
+        </div>
+
+        <div class="form-item">
+          <label>Ghi chú chi tiết / Nghiệm thu chất lượng:</label>
+          <textarea id="log-form-desc" class="form-field" rows="3" placeholder="Ghi chú chi tiết về vật tư, nghiệm thu kích thước dầm cột, sự cố nếu có..."></textarea>
+        </div>
+
+        <div class="form-item">
+          <label>Hình ảnh chụp tại hiện trường:</label>
+          <div style="border:1px dashed var(--border); padding:0.85rem; border-radius:var(--radius-xs); text-align:center; background:#f8fafc; cursor:pointer;" onclick="simulateSelectPhoto()">
+            <span style="font-weight:600; color:var(--primary); display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Bấm để chụp ảnh từ máy ảnh hoặc Chọn ảnh
+            </span>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;" id="photo-upload-status">Tự động gắn định vị GPS Hoài Đức</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-add-log')">Hủy bỏ</button>
+        <button class="btn btn-primary" onclick="submitFieldLog()">Đăng Lên Hệ Thống</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 2: TẠO PHIẾU VẬT TƯ
+       ========================================================================= -->
+  <div id="modal-add-material-req" class="modal-overlay">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h3>
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Tạo Phiếu Đề Xuất Cấp Vật Tư
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-add-material-req')">✕</button>
+      </div>
+      <div class="modal-content">
+        <div class="form-item">
+          <label>Dự án tiếp nhận:</label>
+          <input type="text" class="form-field" id="req-mat-project" value="Biệt thự Yên Bệ - Hoài Đức" readonly style="background:#f8fafc;">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-item">
+            <label>Loại vật tư:</label>
+            <select id="req-mat-name" class="form-field">
+              <option value="Xi măng Vicem PCB40">Xi măng Vicem PCB40</option>
+              <option value="Thép cuộn D10 Hòa Phát">Thép cuộn D10 Hòa Phát</option>
+              <option value="Cát vàng bê tông Sông Lô">Cát vàng bê tông Sông Lô</option>
+              <option value="Gạch Tuynel đặc A1">Gạch Tuynel đặc A1</option>
+              <option value="Ống nhựa PVC Tiền Phong D110">Ống nhựa PVC Tiền Phong D110</option>
+            </select>
+          </div>
+          <div class="form-item">
+            <label>Số lượng cần cấp:</label>
+            <input type="text" id="req-mat-qty" class="form-field" placeholder="Ví dụ: 80 bao hoặc 2.5 tấn">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label>Thời gian cần có tại công trường:</label>
+          <input type="text" id="req-mat-deadline" class="form-field" value="Trước 07:30 Sáng Mai">
+        </div>
+
+        <div class="form-item">
+          <label>Lý do đề xuất:</label>
+          <textarea id="req-mat-reason" class="form-field" rows="2" placeholder="Ghi rõ hạng mục thi công sử dụng..."></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-add-material-req')">Đóng</button>
+        <button class="btn btn-primary" onclick="submitMaterialRequest()">Gửi Ban Quản Trị Duyệt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 3: XEM BẢN VẼ
+       ========================================================================= -->
+  <div id="modal-drawing" class="modal-overlay">
+    <div class="modal-window" style="max-width:700px;">
+      <div class="modal-head">
+        <h3 id="modal-drawing-title">Bản Vẽ Thiết Kế</h3>
+        <button class="modal-close" onclick="closeModal('modal-drawing')">✕</button>
+      </div>
+      <div class="modal-content" style="text-align:center;">
+        <img id="modal-drawing-img" src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1000&q=80" alt="Bản vẽ" style="width:100%; max-height:400px; object-fit:contain; border-radius:4px; border:1px solid var(--border);">
+        <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--text-muted);">
+          Tệp: <code>KTA-DWG-KT02-MATBANG-T2.PDF</code> • Đã phê duyệt thi công ngày 15/09/2026.
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-drawing')">Đóng</button>
+        <button class="btn btn-primary" onclick="showToast('Đang tải bản vẽ AutoCAD gốc...', 'info')">Tải File Bản Vẽ Gốc</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST ALERTS -->
+  <div class="toast-box" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
